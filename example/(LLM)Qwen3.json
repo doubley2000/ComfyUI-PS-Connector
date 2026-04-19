@@ -1,0 +1,43 @@
+{
+  "19": {
+    "inputs": {
+      "image": "OIP-C.webp"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "34": {
+    "inputs": {
+      "model_name": "Huihui-Qwen3-VL-4B-Instruct-abliterated-FP8",
+      "quantization": "None (FP16)",
+      "attention_mode": "auto",
+      "preset_prompt": "🖼️ Detailed Description",
+      "custom_prompt": "",
+      "max_tokens": 512,
+      "keep_model_loaded": true,
+      "seed": 2885318084,
+      "image": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "AILab_QwenVL",
+    "_meta": {
+      "title": "QwenVL"
+    }
+  },
+  "36": {
+    "inputs": {
+      "text": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "PSTextReceiver",
+    "_meta": {
+      "title": "PS Text Receiver (LLM)"
+    }
+  }
+}

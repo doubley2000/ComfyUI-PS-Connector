@@ -1,0 +1,386 @@
+{
+  "3": {
+    "inputs": {
+      "seed": [
+        "469",
+        0
+      ],
+      "steps": [
+        "470",
+        0
+      ],
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": [
+        "471",
+        0
+      ],
+      "model": [
+        "75",
+        0
+      ],
+      "positive": [
+        "111",
+        0
+      ],
+      "negative": [
+        "437",
+        0
+      ],
+      "latent_image": [
+        "112",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "38": {
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "39": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "66": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "434",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "采样算法（AuraFlow）"
+    }
+  },
+  "75": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "66",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFG归一化"
+    }
+  },
+  "89": {
+    "inputs": {
+      "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+      "strength_model": 1,
+      "model": [
+        "433",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  },
+  "111": {
+    "inputs": {
+      "prompt": [
+        "466",
+        0
+      ],
+      "clip": [
+        "38",
+        0
+      ],
+      "vae": [
+        "39",
+        0
+      ],
+      "image1": [
+        "457",
+        0
+      ],
+      "image2": [
+        "458",
+        0
+      ],
+      "image3": [
+        "459",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "文本编码（QwenImageEditPlus）"
+    }
+  },
+  "112": {
+    "inputs": {
+      "width": [
+        "465",
+        0
+      ],
+      "height": [
+        "465",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "空Latent图像（SD3）"
+    }
+  },
+  "433": {
+    "inputs": {
+      "unet_name": "qwen-image-edit-2511-Q4_K_M.gguf"
+    },
+    "class_type": "UnetLoaderGGUF",
+    "_meta": {
+      "title": "Unet Loader (GGUF)"
+    }
+  },
+  "434": {
+    "inputs": {
+      "sage_attention": "auto",
+      "allow_compile": true,
+      "model": [
+        "435",
+        0
+      ]
+    },
+    "class_type": "PathchSageAttentionKJ",
+    "_meta": {
+      "title": "Patch Sage Attention KJ"
+    }
+  },
+  "435": {
+    "inputs": {
+      "lora_name": "Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors",
+      "strength_model": 1,
+      "model": [
+        "89",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  },
+  "437": {
+    "inputs": {
+      "conditioning": [
+        "111",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "条件零化"
+    }
+  },
+  "447": {
+    "inputs": {
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "预览图像"
+    }
+  },
+  "457": {
+    "inputs": {
+      "image": "4714251 - fakes%20kpop%20Lucas_%28singer%29%20music%20NCT.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "458": {
+    "inputs": {
+      "image": "4714251 - fakes%20kpop%20Lucas_%28singer%29%20music%20NCT.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "459": {
+    "inputs": {
+      "image": "4714251 - fakes%20kpop%20Lucas_%28singer%29%20music%20NCT.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "460": {
+    "inputs": {
+      "ui_label": "3",
+      "is_required": false,
+      "get": [
+        "459",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "461": {
+    "inputs": {
+      "ui_label": "1",
+      "is_required": false,
+      "get": [
+        "457",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "462": {
+    "inputs": {
+      "ui_label": "2",
+      "is_required": false,
+      "get": [
+        "458",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "463": {
+    "inputs": {
+      "ui_label": "",
+      "get": [
+        "433",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "464": {
+    "inputs": {
+      "ui_label": "",
+      "get": [
+        "89",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "465": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "use_image_size": true,
+      "image": [
+        "457",
+        0
+      ]
+    },
+    "class_type": "PSGetImageSize",
+    "_meta": {
+      "title": "PS Get Image Size"
+    }
+  },
+  "466": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "字符串（多行）"
+    }
+  },
+  "468": {
+    "inputs": {
+      "ui_label": "提示词",
+      "get": [
+        "466",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "469": {
+    "inputs": {
+      "ui_label": ""
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "470": {
+    "inputs": {
+      "ui_label": ""
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "2.2"
+    }
+  },
+  "471": {
+    "inputs": {
+      "ui_label": ""
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "2.1"
+    }
+  }
+}

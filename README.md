@@ -104,8 +104,10 @@ Contains four sub-tabs:
 
 模式 B：ComfyUI 联动模式 
 在此模式下，PS 面板右上角的下拉菜单提供了两种布局： 默认 (Default)  和  自定义 (Custom) 。
+设置页面的尺寸会对UI上的宽高值做限制
 Mode B: ComfyUI Integration Mode
 In this mode, the drop-down menu in the upper right corner of the PS panel provides two layouts: Default and Custom.
+The size setting item on the settings page will impose restrictions on the width and height values on the UI.
 
 1. 工作流的存放与命名规范
 PS 插件只会读取 ComfyUI 特定目录下的工作流：

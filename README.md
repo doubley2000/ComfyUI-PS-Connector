@@ -294,11 +294,11 @@ By recognizing the node's Role, `customize.js` provides multiple generation logi
    UI Generation: Generates a numerical input box + a "Refresh" button + a "fixed" checkbox.
    Logic: After each generation is completed, JS automatically fills the input box with a random number (simulating ComfyUI's randomized function). If "fixed" is checked, it will no longer refresh.
 
-     5. 获取画布尺寸开关 (`PSGetImageSize` 节点)
+     5) 获取画布尺寸开关 (`PSGetImageSize` 节点)
 这是一个专门在 Python 中注册的新节点，专门用来处理图生图/重绘的尺寸逻辑。
    UI 表现： `createGetImageSizeRow`。包含长宽输入框 + 一键调换按钮 + "As img" (跟随图像) 复选框。
    交互逻辑： 勾选 "As img" 后，输入框置灰。点击生成时，如果勾选了该项，PS 会自动读取关联图像（提取自 PS 图层的图片）的真实尺寸，并强行覆盖 ComfyUI 里的宽和高。如果没勾选，则使用用户手动输入的尺寸。
-   5. Get Canvas Size Switch (`PSGetImageSize` Node)
+   5)  Get Canvas Size Switch (`PSGetImageSize` Node)
 This is a new node specifically registered in Python, dedicated to handling the dimension logic for img2img/inpainting.
    UI Representation: `createGetImageSizeRow`. It contains width and height input boxes + a one-click swap button + an "As img" (follow image) checkbox.
    Interactive Logic: After checking "As img", the input boxes are grayed out. When clicking generate, if this option is checked, PS will automatically read the true dimensions of the associated image (the image extracted from the PS layer) and forcibly override the width and height in ComfyUI. If not checked, the manually entered dimensions provided by the user will be used.

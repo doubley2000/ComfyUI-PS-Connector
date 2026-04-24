@@ -2,7 +2,7 @@
 [project]
 name = "comfyui-ps-connector"
 description = "A connector between a Photoshop plugin and ComfyUI that enables the plugin to access ComfyUI's model list, LoRA trigger words, and preset workflows, and to directly send images and parameters from Photoshop to ComfyUI for image generation."
-version = "1.0.0"
+version = "1.0.2"
 license = { file = "LICENSE" }
 dependencies  = []
 

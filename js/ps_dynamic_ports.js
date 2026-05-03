@@ -9,15 +9,13 @@ app.registerExtension({
         // ==========================================
         if (nodeData.name === "PSWorkflowConfig") {
 
-            // --- 核心工具函数：处理连线移位 ---
             const shiftConnections = function(node) {
-                if (node._isShifting) return; // 防止递归死循环
+                if (node._isShifting) return; 
                 node._isShifting = true;
 
                 let imageLinks = [];
                 let maskLinks = [];
 
-                // 1. 收集当前所有 image 和 mask 的连线信息
                 for (let i = 1; i <= 4; i++) {
                     const imgInp = node.inputs.find(inp => inp.name === `image${i}`);
                     const mskInp = node.inputs.find(inp => inp.name === `mask${i}`);
@@ -32,7 +30,6 @@ app.registerExtension({
                     }
                 }
 
-                // 2. 检查：如果 image 没了，对应的 mask 必须断开
                 let validMaskLinks = [];
                 for (let i = 1; i <= imageLinks.length; i++) {
                     if (maskLinks.length > 0) {
@@ -40,7 +37,6 @@ app.registerExtension({
                     }
                 }
 
-                // 3. 断开所有旧连线
                 for (let i = 1; i <= 4; i++) {
                     const imgIdx = node.findInputSlot(`image${i}`);
                     if (imgIdx !== -1) node.disconnectInput(imgIdx);
@@ -48,7 +44,6 @@ app.registerExtension({
                     if (mskIdx !== -1) node.disconnectInput(mskIdx);
                 }
 
-                // 4. 重新按顺序连接
                 imageLinks.forEach((link, idx) => {
                     const targetSlot = node.findInputSlot(`image${idx + 1}`);
                     if (targetSlot !== -1) {
@@ -68,13 +63,11 @@ app.registerExtension({
                 node._isShifting = false;
             };
 
-            // --- 核心工具函数：同步逻辑开关 ---
             const syncLogicWidgets = function(node) {
                 for (let i = 1; i <= 4; i++) {
                     const imgW = node.widgets.find(w => w.name === `img${i}_req`);
                     const mskW = node.widgets.find(w => w.name === `msk${i}_req`);
                     if (imgW && mskW) {
-                        // 如果 Image 逻辑为假，Mask 逻辑强制为假
                         if (imgW.value === false) {
                             mskW.value = false;
                         }
@@ -87,14 +80,22 @@ app.registerExtension({
                 if (onNodeCreated) onNodeCreated.apply(this, arguments);
                 if (!this._psWidgetCache) this._psWidgetCache = {};
                 
-                this.onWidgetChanged = (name, value) => {
-                    if (name.startsWith("img") && name.endsWith("_req")) {
-                        syncLogicWidgets(this);
-                    }
-                };
-
+                const node = this; // 缓存 node 实例
                 requestAnimationFrame(() => {
-                    this.updateDynamicUI();
+                    if (node.widgets) {
+                        node.widgets.forEach(w => {
+                            if (w.name.startsWith("img") && w.name.endsWith("_req")) {
+                                // V2 修复：使用 callback 替代 Object.defineProperty
+                                const origCb = w.callback;
+                                w.callback = function(val, ...args) {
+                                    w.value = val; // 确保值已更新
+                                    syncLogicWidgets(node);
+                                    if (origCb) origCb.apply(this, [val, ...args]);
+                                };
+                            }
+                        });
+                    }
+                    node.updateDynamicUI();
                 });
             };
 
@@ -126,7 +127,6 @@ app.registerExtension({
                     return input && input.link != null;
                 };
 
-                // 推导可见性
                 let desiredInputs = ["image1"];
                 let desiredWidgets = [];
 
@@ -145,7 +145,6 @@ app.registerExtension({
                     }
                 }
 
-                // 物理管理 Widgets
                 const allDynWidgets = ["img1_req", "msk1_req", "img2_req", "msk2_req", "img3_req", "msk3_req", "img4_req", "msk4_req"];
                 for (let i = this.widgets.length - 1; i >= 0; i--) {
                     const w = this.widgets[i];
@@ -160,7 +159,6 @@ app.registerExtension({
                     }
                 });
 
-                // 物理管理 Inputs
                 const allDynInputs = ["neg_prompt", "image1", "image2", "image3", "image4", "mask1", "mask2", "mask3", "mask4"];
                 const inputTypes = { "neg_prompt": "STRING", "image1": "IMAGE", "image2": "IMAGE", "image3": "IMAGE", "image4": "IMAGE", "mask1": "MASK", "mask2": "MASK", "mask3": "MASK", "mask4": "MASK" };
 
@@ -176,13 +174,16 @@ app.registerExtension({
                     }
                 });
 
-                // 排序
                 const inputOrder = ["model", "lora", "prompt", "neg_prompt", "image1", "mask1", "image2", "mask2", "image3", "mask3", "image4", "mask4"];
                 this.inputs.sort((a, b) => (inputOrder.indexOf(a.name) - inputOrder.indexOf(b.name)));
                 
                 const widgetOrder = ["size_logic", "width", "height", "long_side_pixels", "img1_req", "msk1_req", "img2_req", "msk2_req", "img3_req", "msk3_req", "img4_req", "msk4_req"];
                 this.widgets.sort((a, b) => (widgetOrder.indexOf(a.name) - widgetOrder.indexOf(b.name)));
 
+                if (this.computeSize) {
+                    const sz = this.computeSize();
+                    this.setSize([this.size[0], sz[1]]);
+                }
                 this.setDirtyCanvas(true, true);
             };
         } 
@@ -197,7 +198,6 @@ app.registerExtension({
                 if (onNodeCreated) onNodeCreated.apply(this, arguments);
                 if (!this._psWidgetCache) this._psWidgetCache = {};
                 
-                // 缓存并默认隐藏 is_required
                 const idx = this.widgets.findIndex(w => w.name === "is_required");
                 if (idx !== -1) {
                     this._psWidgetCache["is_required"] = this.widgets[idx];
@@ -223,38 +223,174 @@ app.registerExtension({
             nodeType.prototype.updateDynamicUI = function () {
                 if (!this.inputs || !this.widgets) return;
 
-                // 判断连接进来的类型
                 let connType = null;
                 const getInp = this.inputs.find(inp => inp.name === "get");
                 
                 if (getInp && getInp.link != null) {
                     const linkInfo = app.graph.links[getInp.link];
-                    // linkInfo.type 里面存的是原节点的输出类型（"IMAGE", "MASK", "INT", 等等）
                     if (linkInfo) {
                         connType = linkInfo.type;
                     }
                 }
 
-                // 仅在连接类型是 IMAGE 或 MASK 时显示 is_required 选项
                 const showIsRequired = (connType === "IMAGE" || connType === "MASK");
 
                 if (showIsRequired) {
-                    // 如果被隐藏了，从缓存里拿出来放进去
                     if (!this.widgets.find(w => w.name === "is_required") && this._psWidgetCache["is_required"]) {
                         this.widgets.push(this._psWidgetCache["is_required"]);
                     }
                 } else {
-                    // 不是的话，直接移除它（隐藏）
                     const idx = this.widgets.findIndex(w => w.name === "is_required");
                     if (idx !== -1) {
-                        this._psWidgetCache["is_required"] = this.widgets[idx]; // 再次确保安全缓存
+                        this._psWidgetCache["is_required"] = this.widgets[idx]; 
                         this.widgets.splice(idx, 1);
                     }
                 }
 
-                // 排序：保证 ui_label 在上，is_required 在下
                 const widgetOrder = ["ui_label", "is_required"];
                 this.widgets.sort((a, b) => (widgetOrder.indexOf(a.name) - widgetOrder.indexOf(b.name)));
+
+                if (this.computeSize) {
+                    const sz = this.computeSize();
+                    this.setSize([this.size[0], sz[1]]);
+                }
+                this.setDirtyCanvas(true, true);
+            };
+        }
+
+        // ==========================================
+        // 节点 3: PS Image Preview 的动态逻辑
+        // ==========================================
+        else if (nodeData.name === "PSImagePreview") {
+
+            const onNodeCreated = nodeType.prototype.onNodeCreated;
+            nodeType.prototype.onNodeCreated = function () {
+                if (onNodeCreated) onNodeCreated.apply(this, arguments);
+                
+                const node = this; // 缓存节点实例供回调使用
+
+                // V2 兼容核心：弃用 Object.defineProperty，改用 LiteGraph 原生的 widget.callback
+                requestAnimationFrame(() => {
+                    if (node.widgets) {
+                        const insertW = node.widgets.find(w => w.name === "insert");
+                        const returnW = node.widgets.find(w => w.name === "return");
+                        
+                        if (insertW && returnW) {
+                            // 拦截 insert 的点击事件
+                            const origInsertCb = insertW.callback;
+                            insertW.callback = function(val, ...args) {
+                                insertW.value = val;
+                                if (val === true) {
+                                    returnW.value = false;
+                                }
+                                if (origInsertCb) origInsertCb.apply(this, [val, ...args]);
+                                node.updateDynamicUI(); // 触发 UI 更新
+                            };
+
+                            // 拦截 return 的点击事件
+                            const origReturnCb = returnW.callback;
+                            returnW.callback = function(val, ...args) {
+                                returnW.value = val;
+                                if (val === true) {
+                                    insertW.value = false;
+                                }
+                                if (origReturnCb) origReturnCb.apply(this, [val, ...args]);
+                                node.updateDynamicUI(); // 触发 UI 更新
+                            };
+                        }
+                    }
+                    node.updateDynamicUI();
+                });
+            };
+
+            const onConfigure = nodeType.prototype.onConfigure;
+            nodeType.prototype.onConfigure = function(info) {
+                if (onConfigure) onConfigure.apply(this, arguments);
+                this.updateDynamicUI();
+            };
+
+            nodeType.prototype.updateDynamicUI = function () {
+                if (!this.inputs || !this.widgets) return;
+
+                const insertWidget = this.widgets.find(w => w.name === "insert");
+                const returnWidget = this.widgets.find(w => w.name === "return");
+                if (!insertWidget || !returnWidget) return;
+
+                const isInsertOrReturn = insertWidget.value || returnWidget.value;
+                const img1Inp = this.inputs.find(inp => inp.name === "image1");
+                const img2Inp = this.inputs.find(inp => inp.name === "image2");
+                const maskInp = this.inputs.find(inp => inp.name === "mask");
+
+                let changed = false;
+
+                if (isInsertOrReturn) {
+                    // 开启任意一个选项：如果 image2 存在，我们需要转移连线并删掉它
+                    if (img2Inp) {
+                        changed = true;
+                        if (img2Inp.link != null) {
+                            const link2 = app.graph.links[img2Inp.link];
+                            if (link2) {
+                                const originNode = app.graph.getNodeById(link2.origin_id);
+                                const targetSlot2 = this.findInputSlot("image2");
+                                
+                                this.disconnectInput(targetSlot2);
+                                
+                                if (img1Inp && img1Inp.link == null && originNode) {
+                                    const targetSlot1 = this.findInputSlot("image1");
+                                    if (targetSlot1 !== -1) {
+                                        originNode.connect(link2.origin_slot, this, targetSlot1);
+                                    }
+                                }
+                            }
+                        }
+
+                        const img2Idx = this.inputs.findIndex(inp => inp.name === "image2");
+                        if (img2Idx !== -1) {
+                            this.removeInput(img2Idx);
+                        }
+                    }
+                    
+                    // 同样，如果 mask 存在也删掉它
+                    if (maskInp) {
+                        changed = true;
+                        if (maskInp.link != null) {
+                            const targetSlotMask = this.findInputSlot("mask");
+                            this.disconnectInput(targetSlotMask);
+                        }
+                        const maskIdx = this.inputs.findIndex(inp => inp.name === "mask");
+                        if (maskIdx !== -1) {
+                            this.removeInput(maskIdx);
+                        }
+                    }
+                } else {
+                    // 都关闭的情况下：恢复 image2 和 mask
+                    if (!img2Inp) {
+                        changed = true;
+                        this.addInput("image2", "IMAGE");
+                    }
+                    if (!maskInp) {
+                        changed = true;
+                        this.addInput("mask", "MASK");
+                    }
+                }
+
+                // 如果发生了端口变化，重排列并重置尺寸
+                if (changed) {
+                    const inputOrder = ["image1", "image2", "mask"];
+                    this.inputs.sort((a, b) => {
+                        let posA = inputOrder.indexOf(a.name);
+                        let posB = inputOrder.indexOf(b.name);
+                        if (posA === -1) posA = 999;
+                        if (posB === -1) posB = 999;
+                        return posA - posB;
+                    });
+
+                    // V2 必须调用此方法让节点外框跟随内容缩放
+                    if (this.computeSize) {
+                        const newSize = this.computeSize();
+                        this.setSize([this.size[0], newSize[1]]);
+                    }
+                }
 
                 this.setDirtyCanvas(true, true);
             };

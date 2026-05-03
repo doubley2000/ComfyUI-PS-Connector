@@ -3,44 +3,75 @@ import os
 import sys
 import subprocess
 import shutil
+import hashlib  # 新增：用于计算文件内容的哈希值
 import folder_paths
 from server import PromptServer
 from .routes import get_workflows, read_txt, refresh_models
 from .PSWorkflowConfig import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 
 # ======================================================================
-# 自动复制 example 工作流到 ComfyUI 目录（仅首次运行）
+# 自动复制/更新 example 工作流到 ComfyUI 目录
 # ======================================================================
+def get_examples_hash(source_dir):
+    """计算 source_dir 下所有 json 文件的综合 MD5 值，实现免版本号自动更新"""
+    if not os.path.exists(source_dir):
+        return "none"
+    
+    hash_md5 = hashlib.md5()
+    try:
+        # sorted 保证每次读取文件的顺序一致
+        for file_name in sorted(os.listdir(source_dir)):
+            if file_name.endswith(".json"):
+                file_path = os.path.join(source_dir, file_name)
+                # 读取文件内容计算 Hash，多个文件会不断累加计算出唯一的指纹
+                with open(file_path, "rb") as f:
+                    hash_md5.update(f.read())
+        return hash_md5.hexdigest()
+    except Exception:
+        return "error"
+
 def copy_example_workflows():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     marker_file = os.path.join(current_dir, ".workflows_copied")
+    source_dir = os.path.join(current_dir, "example")
+    target_dir = os.path.join(folder_paths.base_path, "user", "default", "workflows", "PSflows")
     
-    # 只要标记文件存在，就直接跳过，完全不占用后续启动时间
-    if not os.path.exists(marker_file):
-        source_dir = os.path.join(current_dir, "example")
-        target_dir = os.path.join(folder_paths.base_path, "user", "default", "workflows", "PSflows")
+    # 1. 获取当前 example 文件夹下所有工作流内容的真实 Hash
+    current_hash = get_examples_hash(source_dir)
+    if current_hash in ["none", "error"]:
+        return  # 如果 example 文件夹不存在或读取出错，直接跳过
         
-        if os.path.exists(source_dir):
-            print("\n[PS_Connector] 首次安装：正在为您复制示例工作流...")
-            try:
-                os.makedirs(target_dir, exist_ok=True)
-                for file_name in os.listdir(source_dir):
-                    source_file = os.path.join(source_dir, file_name)
-                    # 只复制文件，通常工作流是 .json 格式
-                    if os.path.isfile(source_file) and file_name.endswith(".json"):
-                        shutil.copy2(source_file, target_dir)
-                        print(f"[PS_Connector] 已复制: {file_name}")
-                        
-                # 无论成功与否，都写入标记文件，确保以后不再执行
-                with open(marker_file, 'w', encoding='utf-8') as f:
-                    f.write("Workflows copied successfully.")
-                print("[PS_Connector] ✅ 示例工作流复制完成！\n")
-            except Exception as e:
-                print(f"[PS_Connector] ❌ 复制工作流失败: {e}\n")
-        else:
-            # 如果没找到 example 文件夹，也生成标记文件，避免以后每次启动都报警
-            with open(marker_file, 'w', encoding='utf-8') as f:
-                f.write("No example folder found.")
+    # 2. 读取上一次保存的 Hash 或标记内容
+    saved_hash = ""
+    if os.path.exists(marker_file):
+        try:
+            with open(marker_file, 'r', encoding='utf-8') as f:
+                saved_hash = f.read().strip()
+        except:
+            pass
+            
+    # 3. 如果 Hash 完全一致，说明工作流没有任何修改，极速跳过，不占用启动时间
+    if current_hash == saved_hash:
+        return
+
+    # 4. 如果 Hash 不同（旧用户的标记是纯文本、或者工作流被增删改了），执行复制
+    print("\n[PS_Connector] 检测到示例工作流有更新或首次安装：正在为您同步...")
+    try:
+        os.makedirs(target_dir, exist_ok=True)
+        for file_name in os.listdir(source_dir):
+            source_file = os.path.join(source_dir, file_name)
+            # 只复制文件，且仅限 .json 格式
+            if os.path.isfile(source_file) and file_name.endswith(".json"):
+                shutil.copy2(source_file, target_dir)
+                print(f"[PS_Connector] 已同步: {file_name}")
+                
+        # 5. 同步成功后，将新的 Hash 值写入标记文件，确保以后不再重复执行
+        with open(marker_file, 'w', encoding='utf-8') as f:
+            f.write(current_hash)
+        print("[PS_Connector] ✅ 示例工作流同步完成！\n")
+        
+    except Exception as e:
+        print(f"[PS_Connector] ❌ 同步工作流失败: {e}\n")
 
 copy_example_workflows()
 # ======================================================================

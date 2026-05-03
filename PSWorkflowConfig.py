@@ -19,13 +19,10 @@ class PSGetNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                # 节点本身的单行文本，供 PS UI 做 Label 备用
                 "ui_label": ("STRING", {"default": ""}),
-                # 新增：布尔项，用于定义图像或mask的必要性（前端 JS 会根据连线类型动态显隐）
                 "is_required": ("BOOLEAN", {"default": True}),
             },
             "optional": {
-                # 接受任意类型的输入（Image, Mask, Int, Float, String 等）
                 "get": (any_type,),
             }
         }
@@ -36,7 +33,6 @@ class PSGetNode:
     CATEGORY = "PS_Connector"
 
     def passthrough(self, ui_label="", is_required=True, get=None):
-        # 运行时作为一个纯粹的直通节点，不修改任何数据
         return (get,)
 
 class PSTextReceiver:
@@ -54,9 +50,7 @@ class PSTextReceiver:
     CATEGORY = "PS_Connector"
 
     def receive_text(self, text):
-        # 抛出 UI 字典，前端 JS websocket 会自动将其截获并识别
         return {"ui": {"text": [text]}}
-# ==========================================
 
 class PSWorkflowConfig:
     @classmethod
@@ -139,8 +133,6 @@ class PSImageAndMaskScaler:
             out_mask = torch.zeros((1, height, width), dtype=torch.float32)
         return (out_image, out_mask)
 
-
-# ======= 新增/修改：并列预览节点 =======
 class PSImagePreview:
     def __init__(self):
         self.output_dir = folder_paths.get_temp_directory()
@@ -150,7 +142,10 @@ class PSImagePreview:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": {},
+            "required": {
+                "insert": ("BOOLEAN", {"default": False}),
+                "return": ("BOOLEAN", {"default": False}),
+            },
             "optional": {
                 "image1": ("IMAGE",),
                 "image2": ("IMAGE",),
@@ -178,14 +173,13 @@ class PSImagePreview:
             img = F.interpolate(img, size=(target_height, target_width), mode='bicubic', align_corners=False)
             return img.permute(0, 2, 3, 1).clamp(0, 1)
 
-    def preview(self, image1=None, image2=None, mask=None):
+    def preview(self, insert=False, image1=None, image2=None, mask=None, **kwargs):
         if image1 is None and image2 is None and mask is None:
             return {"ui": {"images": []}}
             
         target_width = None
         target_height = None
         
-        # 尺寸逻辑判定
         if image2 is not None:
             target_height = image2.shape[1]
             target_width = image2.shape[2]
@@ -200,7 +194,6 @@ class PSImagePreview:
 
         processed_images = []
         
-        # 处理 image1
         if image1 is not None:
             if image1.shape[1] != target_height or image1.shape[2] != target_width:
                 img1_scaled = self.scale_tensor(image1, target_width, target_height, is_mask=False)
@@ -208,11 +201,9 @@ class PSImagePreview:
                 img1_scaled = image1
             processed_images.append(("img1", img1_scaled))
             
-        # 处理 image2
         if image2 is not None:
             processed_images.append(("img2", image2))
             
-        # 处理 mask
         if mask is not None:
             if len(mask.shape) == 2:
                 h, w = mask.shape
@@ -224,7 +215,6 @@ class PSImagePreview:
             else:
                 mask_scaled = mask
                 
-            # 将 mask 转为 3 通道图以便正常显示
             if len(mask_scaled.shape) == 2:
                 mask_scaled = mask_scaled.unsqueeze(0).unsqueeze(-1).repeat(1, 1, 1, 3)
             elif len(mask_scaled.shape) == 3:
@@ -236,13 +226,11 @@ class PSImagePreview:
 
         results = []
         
-        # 分别保存每张图片，而不是拼合成一张。返回的多个图片会在 UI 中并列展示。
         for img_idx, (name, img_tensor) in enumerate(processed_images):
             for batch_number, image in enumerate(img_tensor):
                 i = 255. * image.cpu().numpy()
                 img_pil = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
                 
-                # 文件名包含原输入标识(img1/img2/mask)保证不会相互覆盖
                 filename = f"_{name}.png"
                 full_path = os.path.join(self.output_dir, filename)
                 img_pil.save(full_path, compress_level=4)
@@ -255,17 +243,17 @@ class PSImagePreview:
 
         return {"ui": {"images": results}}
 
-# ======= 新增：获取图像尺寸及逻辑控制节点 =======
 class PSGetImageSize:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "image": ("IMAGE",),
                 "width": ("INT", {"default": 512, "min": 1, "max": 16384, "step": 1}),
                 "height": ("INT", {"default": 512, "min": 1, "max": 16384, "step": 1}),
-                # 逻辑判断项：默认开启，开启时输出图像尺寸，关闭时输出输入框尺寸
                 "use_image_size": ("BOOLEAN", {"default": True, "label": "Use Image Size"}),
+            },
+            "optional": {
+                "image": ("IMAGE",),
             }
         }
     
@@ -274,24 +262,21 @@ class PSGetImageSize:
     FUNCTION = "get_size"
     CATEGORY = "PS_Connector"
 
-    def get_size(self, image, width, height, use_image_size):
-        if use_image_size:
-            # ComfyUI 的图像 tensor 形状通常为 (batch, height, width, channels)
+    def get_size(self, width, height, use_image_size, image=None):
+        if use_image_size and image is not None:
             img_height = image.shape[1]
             img_width = image.shape[2]
             return (int(img_width), int(img_height))
         else:
             return (int(width), int(height))
 
-# ===============================================
-# 注册字典追加修改
 NODE_CLASS_MAPPINGS = {
     "PSWorkflowConfig": PSWorkflowConfig,
     "PSImageAndMaskScaler": PSImageAndMaskScaler,
     "PSTextReceiver": PSTextReceiver,
     "PSGetNode": PSGetNode,
     "PSImagePreview": PSImagePreview,
-    "PSGetImageSize": PSGetImageSize  # 注册新节点
+    "PSGetImageSize": PSGetImageSize  
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -300,5 +285,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "PSTextReceiver": "PS Text Receiver (LLM)",
     "PSGetNode": "PS Get (Custom UI)",
     "PSImagePreview": "PS Image Preview",
-    "PSGetImageSize": "PS Get Image Size" # 注册新节点显示名称
+    "PSGetImageSize": "PS Get Image Size" 
 }

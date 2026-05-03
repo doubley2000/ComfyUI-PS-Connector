@@ -88,7 +88,7 @@ IV. Photoshop Plugin Usage Guide
 插件分为Main View (基础 API 模式) 和ComfyUI View (Comfy 联动模式)。点击顶部的切换按钮即可切换。
 The plugin is divided into Main View (Basic API Mode) and ComfyUI View (Comfy Integration Mode). Click the toggle button at the top to switch between them.
 
-模式 A：Nano banana2 API 
+模式 A：Nano banana2 API / GPT Image2 API
 适用于第三方的 API 服务
 包含四个子标签页：
 1. 文生图 (Page 1)：输入提示词，直接生成图片至 PS 画布。
@@ -101,7 +101,7 @@ The plugin is divided into Main View (Basic API Mode) and ComfyUI View (Comfy In
   2）模型名自定义：用于替换api提供商设置的生图大模型名称
   3）自动化提示词预设：为扩图和局部修改模式提供了提示词的预设。
 <!-- 这是一个隐藏的分割线，用于打断列表 -->
-Mode A: Nano banana2 API
+Mode A: Nano banana2 API / GPT Image2 API
 Suitable for third-party API services.
 Contains four sub-tabs:
 1. Txt2Img (Page 1): Enter prompt words to generate images directly onto the PS canvas.

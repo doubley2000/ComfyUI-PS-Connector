@@ -1,0 +1,272 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "homosimileXLPony_v60NAIXLEPSV11.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Checkpoint加载器（简易）"
+    }
+  },
+  "2": {
+    "inputs": {
+      "seed": 243761561852178,
+      "steps": 20,
+      "cfg": 4,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "27",
+        0
+      ],
+      "positive": [
+        "3",
+        0
+      ],
+      "negative": [
+        "4",
+        0
+      ],
+      "latent_image": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "3": {
+    "inputs": {
+      "text": [
+        "25",
+        0
+      ],
+      "clip": [
+        "27",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "4": {
+    "inputs": {
+      "text": [
+        "26",
+        0
+      ],
+      "clip": [
+        "27",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP文本编码"
+    }
+  },
+  "5": {
+    "inputs": {
+      "samples": [
+        "2",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "8": {
+    "inputs": {
+      "image": "clipspace/clipspace-painted-masked-1776938383196.png [input]"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "加载图像"
+    }
+  },
+  "10": {
+    "inputs": {
+      "pixels": [
+        "8",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE编码"
+    }
+  },
+  "11": {
+    "inputs": {
+      "samples": [
+        "10",
+        0
+      ],
+      "mask": [
+        "8",
+        1
+      ]
+    },
+    "class_type": "SetLatentNoiseMask",
+    "_meta": {
+      "title": "设置Latent噪波遮罩"
+    }
+  },
+  "25": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "提示词"
+    }
+  },
+  "26": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "负面提示词"
+    }
+  },
+  "27": {
+    "inputs": {
+      "lora_name": "(Qwen)5BQWEN5D20senddudes.2ium.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "加载LoRA"
+    }
+  },
+  "30": {
+    "inputs": {
+      "insert": false,
+      "return": true,
+      "image1": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "PSImagePreview",
+    "_meta": {
+      "title": "PS Image Preview"
+    }
+  },
+  "34": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "width": [
+        "48",
+        0
+      ],
+      "height": [
+        "48",
+        1
+      ],
+      "crop": "disabled",
+      "samples": [
+        "11",
+        0
+      ]
+    },
+    "class_type": "LatentUpscale",
+    "_meta": {
+      "title": "缩放Latent"
+    }
+  },
+  "44": {
+    "inputs": {
+      "ui_label": "",
+      "get": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "45": {
+    "inputs": {
+      "ui_label": "",
+      "is_required": false,
+      "get": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "46": {
+    "inputs": {
+      "ui_label": "",
+      "is_required": false,
+      "get": [
+        "8",
+        1
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  },
+  "48": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "use_image_size": true,
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "PSGetImageSize",
+    "_meta": {
+      "title": "PS Get Image Size"
+    }
+  },
+  "49": {
+    "inputs": {
+      "ui_label": "",
+      "get": [
+        "27",
+        0
+      ]
+    },
+    "class_type": "PSGetNode",
+    "_meta": {
+      "title": "PS Get (Custom UI)"
+    }
+  }
+}

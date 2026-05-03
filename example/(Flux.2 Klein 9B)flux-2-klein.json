@@ -30,22 +30,6 @@
       "title": "UNet加载器"
     }
   },
-  "17": {
-    "inputs": {
-      "samples": [
-        "29",
-        0
-      ],
-      "vae": [
-        "10",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE解码"
-    }
-  },
   "19": {
     "inputs": {
       "text": [
@@ -60,18 +44,6 @@
     "class_type": "CLIPTextEncode",
     "_meta": {
       "title": "CLIP文本编码"
-    }
-  },
-  "29": {
-    "inputs": {
-      "anything": [
-        "95",
-        0
-      ]
-    },
-    "class_type": "easy cleanGpuUsed",
-    "_meta": {
-      "title": "清理显存占用"
     }
   },
   "38": {
@@ -330,7 +302,7 @@
       "long_side_pixels": 2048,
       "img1_req": false,
       "img2_req": false,
-      "img3_req": true,
+      "img3_req": false,
       "model": [
         "13",
         0
@@ -379,26 +351,6 @@
       "title": "整数"
     }
   },
-  "147": {
-    "inputs": {
-      "image1": [
-        "17",
-        0
-      ],
-      "image2": [
-        "17",
-        0
-      ],
-      "mask": [
-        "148",
-        0
-      ]
-    },
-    "class_type": "PSImagePreview",
-    "_meta": {
-      "title": "PS Image Preview"
-    }
-  },
   "148": {
     "inputs": {
       "channel": "red",
@@ -419,6 +371,36 @@
     "class_type": "PrimitiveStringMultiline",
     "_meta": {
       "title": "字符串（多行）"
+    }
+  },
+  "153": {
+    "inputs": {
+      "samples": [
+        "95",
+        0
+      ],
+      "vae": [
+        "10",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "154": {
+    "inputs": {
+      "insert": false,
+      "return": true,
+      "image1": [
+        "153",
+        0
+      ]
+    },
+    "class_type": "PSImagePreview",
+    "_meta": {
+      "title": "PS Image Preview"
     }
   }
 }

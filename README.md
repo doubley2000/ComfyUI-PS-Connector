@@ -32,8 +32,8 @@ When ComfyUI is launched for the first time, the plugin will automatically pull 
 3. Open the PS plugin panel, click "Settings", and enter your ComfyUI address in the ComfyUI URL field (default is `http://127.0.0.1:8188`) to start interacting with ComfyUI.
 By filling in the address of your Nano banana2 third-party API provider in the Base Url, you can directly use Nano banana2 in PS.
 
-三、 ComfyUI 专用节点说明 (面向工作流作者)
-III. ComfyUI Dedicated Node Instructions (For Workflow Authors)
+二、 ComfyUI 专用节点说明 (面向工作流作者)
+II. ComfyUI Dedicated Node Instructions (For Workflow Authors)
 
 为了让 PS 插件能完美识别您的工作流，插件提供了几个核心自定义节点（位于  PS_Connector  分类下）：
 In order for the PS plugin to perfectly recognize your workflows, the plugin provides several core custom nodes (located under the `PS_Connector` category):
@@ -82,8 +82,8 @@ Usage: Connect the generated image to this node. It will generate special tempor
 Function: An output node specifically set up for LLM inference.
 Usage: Connect it at the final output, though it is generally not needed.
 
-四、 Photoshop 插件使用指南
-IV. Photoshop Plugin Usage Guide
+三、 Photoshop 插件使用指南
+III. Photoshop Plugin Usage Guide
 
 插件分为Main View (基础 API 模式) 和ComfyUI View (Comfy 联动模式)。点击顶部的切换按钮即可切换。
 The plugin is divided into Main View (Basic API Mode) and ComfyUI View (Comfy Integration Mode). Click the toggle button at the top to switch between them.
